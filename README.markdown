@@ -4,7 +4,7 @@ Bumblebee provides fuzzy matching buffer commands: `:B`, `:Sb`, and `:Vb`.
 
 Bumblebee "overrides" Vim's native `:b` and `:sb` commands by using a smart
 abbreviation that expands to `:B` and `:Sb` respectively. `:vb` is also
-expanded to ``:Vb` for consistency.
+expanded to `:Vb` for consistency.
 
 ## Installation
 
