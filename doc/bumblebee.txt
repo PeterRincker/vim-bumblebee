@@ -1,0 +1,44 @@
+*bumblebee.txt*   Fuzzy buffer commands
+
+Author:  Peter Rincker					*bumblebee-author*
+License: Same terms as Vim itself (see |license|)
+
+This plugin is only available if 'compatible' is not set.
+
+==============================================================================
+							*bumblebee*
+
+Bumblebee provides fuzzy matching buffer navigation commands |:B|, |:Sb|, and
+|:Vb|.
+
+Bumblebee "overrides" vim's native |:b| and |:sb| commands by using a
+smart |cabbrev| to use the bumblebee versions: |:B|, and |:Sb| respectively.
+|:vb| is abbreviated to |:Vb| for consistency.
+
+==============================================================================
+							*bumblebee-:B*
+:B[!] {bufname}
+		Switch to buffer that matches {bufname}. Similar to |:b|
+		command, but instead matches buffer names fuzzily.  >
+
+		:B foobar " Similar to :b *f*o*o*b*a*r*
+<
+
+							*bumblebee-:Sb*
+:Sb[!] {bufname}
+		Split and switch to buffer that matches {bufname}. Similar to
+		|:sb| command. Also see |bumblebee-:B|.
+
+							*bumblebee-:Vb*
+:Vb[!] {bufname}
+		Split vertically and switch to buffer that matches {bufname}.
+		Similar to |:sb| command. Also see |bumblebee-:B|.
+
+
+==============================================================================
+SPECIAL THANKS					*bumblebee-special-thanks*
+
+Tim Pope who has created many amazing plugins, but has inspired much of the
+implementation of this plugin.
+
+ vim:tw=78:ts=8:ft=help:norl:
