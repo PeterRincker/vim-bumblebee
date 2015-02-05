@@ -4,25 +4,53 @@ endif
 let g:loaded_bumblebee = 1
 
 function! s:buffer_complete(lead, cmdline, _) abort
-  let buffers = map(filter(range(1, bufnr('$')), 'bufloaded(v:val)'), 'fnamemodify(bufname(v:val), ":~:.")')
-  return s:complete_filter(buffers, a:lead)
+  let bufnr = bufnr('%')
+  let buffers = s:get_buffers('v:val != '.bufnr.' && bufloaded(v:val) && buflisted(v:val)')
+
+  let filtered = s:complete_filter(filter(buffers, 'v:val =~ ''^[^~'.s:slash().']'''), a:lead)
+  if empty(filtered)
+    let filtered = s:complete_filter(buffers, a:lead)
+  endif
+  if empty(filtered)
+    let filtered = s:complete_filter(s:get_buffers('buflisted(v:val)'), a:lead)
+  endif
+
+  return sort(filtered, 's:cmp_by_length')
 endfunction
 
 function! s:complete_filter(results, A)
   let sep = s:slash()
   let results = s:uniq(sort(copy(a:results)))
   call filter(results,'v:val !~# "\\~$"')
+
   let filtered = filter(copy(results),'v:val[0:strlen(a:A)-1] == a:A')
   if !empty(filtered) | return filtered | endif
+
+  let regex = s:gsub(a:A,'[^'.sep.']','[&][^'.sep.']*')
+  let filtered = filter(copy(results),'v:val =~ regex."$"')
+  if !empty(filtered) | return filtered | endif
+
   let regex = s:gsub(a:A,'[^'.sep.']','[&].*')
   let filtered = filter(copy(results),'v:val =~ "^".regex')
+
   if !empty(filtered) | return filtered | endif
   let filtered = filter(copy(results),'sep.v:val =~ ''['.sep.']''.regex')
+
   if !empty(filtered) | return filtered | endif
   let regex = s:gsub(a:A,'.','[&].*')
   let filtered = filter(copy(results),'v:val =~ regex')
+
   return filtered
 endfunction
+
+function! s:get_buffers(expr)
+  return map(filter(range(1, bufnr('$')), a:expr), 'fnamemodify(bufname(v:val), ":~:.")')
+endfunction
+
+function! s:cmp_by_length(...)
+	let [len1, len2] = [strlen(a:1), strlen(a:2)]
+	return len1 == len2 ? 0 : len1 > len2 ? 1 : -1
+endf
 
 function! s:slash() abort
   return exists('+shellslash') && !&shellslash ? '\' : '/'
