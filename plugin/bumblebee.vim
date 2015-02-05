@@ -4,21 +4,36 @@ endif
 let g:loaded_bumblebee = 1
 
 function! s:buffer_complete(lead, cmdline, _) abort
+  let C = get(g:, 'bumblebee_completion_filter', get(g:, 'completion_filter', {'Apply': function('s:complete_filter')}))
+
+  let fuzz = {}
+  if type(C) == type({}) && has_key(C, 'Apply')
+    let fuzz.Apply = C.Apply
+  elseif type(C) == type('') && exists('*'.C)
+    let fuzz.Apply = function(C)
+  else
+    throw 'Bumblebee: invalid complete filter'
+  endif
+
   let bufnr = bufnr('%')
   let buffers = s:get_buffers('v:val != '.bufnr.' && bufloaded(v:val) && buflisted(v:val)')
 
-  let filtered = s:complete_filter(filter(buffers, 'v:val =~ ''^[^~'.s:slash().']'''), a:lead)
+  let filtered = fuzz.Apply(filter(buffers, 'v:val =~ ''^[^~'.s:slash().']'''), a:lead)
   if empty(filtered)
-    let filtered = s:complete_filter(buffers, a:lead)
+    let filtered = fuzz.Apply(buffers, a:lead)
   endif
   if empty(filtered)
-    let filtered = s:complete_filter(s:get_buffers('buflisted(v:val)'), a:lead)
+    let filtered = fuzz.Apply(s:get_buffers('buflisted(v:val)'), a:lead)
   endif
 
-  return sort(filtered, 's:cmp_by_length')
+  return filtered
 endfunction
 
 function! s:complete_filter(results, A)
+  return sort(s:fuzzy_filter(a:results, a:A), 's:cmp_by_length')
+endfunction
+
+function! s:fuzzy_filter(results, A)
   let sep = s:slash()
   let results = s:uniq(sort(copy(a:results)))
   call filter(results,'v:val !~# "\\~$"')
@@ -64,7 +79,7 @@ function! s:open_buffer(bang, cmd, key)
       if len(lst) == 0
         call s:throw("No matching buffers")
         return
-      elseif len(lst) > 1
+      elseif len(lst) > 1 && lst[0] !=# key
         call s:throw("More than one match for " . a:key)
       endif
       let key = lst[0]
